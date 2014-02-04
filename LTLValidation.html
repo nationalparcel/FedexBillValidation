@@ -1,0 +1,267 @@
+<html>
+<head>
+</head>
+<body>
+	Consolidator Pro:&nbsp;<input id='search'/>&nbsp;<button id='searchButton'>Search</button>
+	<br>
+	<br>
+	<div id='actualCost'>
+		<br>
+		<br>
+			Invoice#:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id='invoiceNumber'/><br>
+			Actual Cost:&nbsp;<input id="cost"/>&nbsp;<button id='actualCostSubmit'>Submit</button>
+			<br>
+			Total Gross Weight = &nbsp;<span id='totalGrossWeight'></span>
+			<br>
+			<br>
+		<br>
+		<br>
+	</div>
+	<h3>Shipments Data</h3>
+	<table id='dataTable'>
+		<thead>
+			<tr>
+				<th>Carrier Pro</th>
+				<th>NPL Pro Number</th>
+				<th>Gross Weight</th>
+				<th>Customer</th>
+				<th>Delivery Date</th>
+				<th>USPS Destination</th>
+				<th>Exception Notes</th>
+				<th>Shipment Notes</th>
+			</tr>
+		</thead>
+	</table>
+	<br>
+	<br>
+	<h3>Freight Cost Data</h3>
+	<table id='FCDataTable'>
+		<thead>
+			<tr>
+				<th>Actual Cost</th>
+				<th>Estimated Cost</th>
+				<th>Invoice Number</th>
+				<th>Exception Notes</th>
+				<th>Shipment Notes</th>
+			</tr>
+		</thead>
+	</table>
+</body>
+</html>
+
+<link rel="stylesheet" href="../Scripts/jquery-ui-1.8rc3.custom/css/smoothness/jquery-ui-1.8rc3.custom.css" type="text/css" media="all" />
+<link rel="stylesheet" href="../Scripts/jqueryUI/DataTables-1.9.4/css/jquery.dataTables_themeroller.css" type="text/css" media="all" />  
+<script src="../Scripts/jquery-ui-1.8rc3.custom/js/jquery-1.4.2.min.js" type="text/javascript"></script>
+<script src="../Scripts/jquery-ui-1.8rc3.custom/js/jquery-ui-1.8rc3.custom.min.js" type="text/javascript"></script>
+<script src="../Scripts/knockout-2.2.1.js" type ="text/javascript"></script>
+<script src="../Scripts/jquery.SPServices-0.7.2.min.js" type="text/javascript"></script>
+<script src="../Scripts/KOJSMapping.js" type="text/javascript"></script>
+<script src="../Scripts/jqueryUI/DataTables-1.9.4/js/jquery.dataTables.min.js" type="text/javascript"></script>
+
+<script>
+$(document).ready(function()
+{
+	$( '#actualCost' ).hide();
+	var fcTable = $( '#FCDataTable' ).dataTable(
+	{
+		"aaData":[
+		],
+		"bjQueryUI":true,
+		"sPaginationType":"full_numbers"
+	});
+	var table = $( '#dataTable' ).dataTable(
+	{
+		"aaData":[
+		],
+		"bjQueryUI":true,
+		"sPaginationType":"full_numbers"
+	});
+/////////////////////////////////////////////////
+	$( '#searchButton' ).click(function()
+	{
+		$( '#actualCost' ).show();
+		table.fnClearTable();
+		fcTable.fnClearTable();
+		$( '#totalGrossWeight' ).text("");
+		tempGrossWeight = 0;
+		conProNumber = $( '#search' ).val();
+		$().SPServices(
+		{
+			operation: "GetListItems",
+			async: false,
+			listName: "Shipments Archive",
+			CAMLViewFields: "<ViewFields><FieldRef Name='ID'/>"+
+								"<FieldRef Name='Carrier_x0020_Pro_x0023_'/>"+
+								"<FieldRef Name='Pro_x0020_Number'/>"+
+								"<FieldRef Name='Gross_x0020_Weight'/>"+
+								"<FieldRef Name='Customer_x0020_Name'/>"+
+								"<FieldRef Name='Drop_x0020_Site_x0020_Name'/>"+
+								"<FieldRef Name='Exception_x0020_Notes'/>"+
+								"<FieldRef Name='Shipment_x0020_Notes'/>"+
+								"<FieldRef Name='Delivery_x0020_Date'/>"+
+								"</ViewFields>",
+			CAMLQuery: "<Query><Where><Eq><FieldRef Name='Carrier_x0020_Pro_x0023_'/><Value Type='Text'>" + conProNumber + "</Value></Eq></Where></Query>",
+			completefunc: function (xData, Status) 
+			{
+				$(xData.responseXML).SPFilterNode("z:row").each(function()
+				{
+					carrierPro = $(this).attr("ows_Carrier_x0020_Pro_x0023_");
+					nplPro = $(this).attr("ows_Pro_x0020_Number");
+					grossWeight = $(this).attr("ows_Gross_x0020_Weight");
+					customer = $(this).attr("ows_Customer_x0020_Name");
+					postDestination = $(this).attr("ows_Drop_x0020_Site_x0020_Name");
+					exceptionNotes = $(this).attr("ows_Exception_x0020_Notes");
+					shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
+					deliveryDate = $(this).attr("ows_Delivery_x0020_Date");
+					if (!deliveryDate)
+					{
+						deliveryDate = "";
+					}
+					if (!postDestination)
+					{
+						postDestination = "";
+					}
+					if (!shipmentNotes)
+					{
+						shipmentNotes = "";
+					}
+					if (!exceptionNotes)
+					{
+						exceptionNotes = "";
+					}
+					if (!customer)
+					{
+						customer = "";
+					}
+					if (!carrierPro)
+					{
+						carrierPro = "";
+					}
+					if (!nplPro)
+					{
+						nplPro = "";
+					}
+					if (!grossWeight)
+					{
+						grossWeight = "";
+					}
+					else
+					{
+						grossWeight = grossWeight.split(".")[0];
+					}
+					
+					$( '#dataTable' ).dataTable().fnAddData(
+					[
+						carrierPro,
+						nplPro,
+						grossWeight,
+						customer,
+						deliveryDate,
+						postDestination,
+						exceptionNotes,
+						shipmentNotes
+					]);
+					grossWeight = parseInt(grossWeight);
+					tempGrossWeight = tempGrossWeight + grossWeight;
+				});
+				$( '#totalGrossWeight' ).text(tempGrossWeight);
+			}
+		});
+		$().SPServices(
+		{
+			operation: "GetListItems",
+			async: false,
+			listName: "Freight Costs",
+			CAMLViewFields: "<ViewFields><FieldRef Name='Actual_x0020_Cost'/>"+
+								"<FieldRef Name='Estimated_x0020_Cost'/>"+
+								"<FieldRef Name='Exception_x0020_Notes'/>"+
+								"<FieldRef Name='Shipment_x0020_Notes'/>"+
+								"<FieldRef Name='Invoice_x0023_'/>"+
+								"</ViewFields>",
+			CAMLQuery: "<Query><Where><Eq><FieldRef Name='Carrier_x0020_Pro_x0023_'/><Value Type='Text'>" + conProNumber + "</Value></Eq></Where></Query>",
+			completefunc: function (xData, Status)
+			{
+				$(xData.responseXML).SPFilterNode("z:row").each(function()
+				{
+					actualCost = $(this).attr("ows_Actual_x0020_Cost");
+					estimatedCost = $(this).attr("ows_Estimated_x0020_Cost");
+					invoiceNumber = $(this).attr("ows_Invoice_x0023_");
+					exceptionNotes = $(this).attr("ows_Exception_x0020_Notes");
+					shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
+					if (!invoiceNumber)
+					{
+						invoiceNumber = "";
+					}
+					if (!actualCost)
+					{
+						actualCost = "";
+					}
+					else
+					{
+						dollars = actualCost.split(".")[0];
+						cents = actualCost.split(".")[1];
+						cents = cents.slice(0,2);
+						actualCost = dollars + "." + cents;
+					}
+					if (!estimatedCost)
+					{
+						estimatedCost = "";
+					}
+					else
+					{
+						estimatedCost = estimatedCost.split(".")[0];
+					}
+					if (!exceptionNotes)
+					{
+						exceptionNotes = "";
+					}
+					if (!shipmentNotes)
+					{
+						shipmentNotes = "";
+					}
+					$( '#FCDataTable' ).dataTable().fnAddData(
+					[
+						actualCost,
+						estimatedCost,
+						invoiceNumber,
+						exceptionNotes,
+						shipmentNotes
+					]);
+				});
+			}
+		});
+	});
+	/////////////////////////////////////////////////////////////////////////////
+	$( '#actualCostSubmit' ).click(function()
+	{
+		conProNumber = $( '#search' ).val();
+		costToWrite = $( '#cost' ).val();
+		invoiceNumberTemp = $( '#invoiceNumber' ).val();
+		$().SPServices(
+		{
+			operation: "GetListItems",
+			async: false,
+			listName: "Freight Costs",
+			CAMLViewFields: "<ViewFields><FieldRef Name='ID'/></ViewFields>",
+			CAMLQuery: "<Query><Where><Eq><FieldRef Name='Carrier_x0020_Pro_x0023_'/><Value Type='Text'>" + conProNumber + "</Value></Eq></Where></Query>",
+			completefunc: function (xData, Status) 
+			{
+				$(xData.responseXML).SPFilterNode("z:row").each(function() 
+				{
+					$().SPServices(
+					{
+						operation: "UpdateListItems",
+						async: false,
+						batchCmd: "Update",
+						listName: "Freight Costs",
+						ID: $(this).attr("ows_ID"),
+						valuepairs: [["Actual_x0020_Cost",costToWrite],["Invoice_x0023_",invoiceNumberTemp]],
+						completefunc: function(xData,Status) {}
+					});
+				});
+			}
+		});
+		$( '#searchButton' ).trigger('click');
+	});
+});
+</script>
