@@ -2,14 +2,20 @@
 <head>
 </head>
 <body>
-	Consolidator Pro:&nbsp;<input id='search'/>&nbsp;<button id='searchButton'>Search</button>
+	<a href='http://nplweb.net/nplweb/Lists/Freight Costs/NewForm.aspx?RootFolder=%2Fnplweb%2FLists%2FFreight%20Costs&ContentTypeId=0x0100F21621715E0C9D44AACD1F00E5D818B0010081EF93BF335E2142A2FFAB8056796903&Source=http%3A%2F%2Fnplweb%2Enet%2Fnplweb%2FWebPart%2FLTL%2520Invoice%2520Validation%2Easpx' target="_blank">New Cost</a>
+	<br>
+	<br>
+	Consolidator Pro:&nbsp;<input id='search'/>
+	<br>
+	HAWB&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id='hawbInput'/>&nbsp;<button id='searchButton'>Search</button>
 	<br>
 	<br>
 	<div id='actualCost'>
 		<br>
 		<br>
-			Invoice#:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id='invoiceNumber'/><br>
-			Actual Cost:&nbsp;<input id="cost"/>&nbsp;<button id='actualCostSubmit'>Submit</button>
+			Invoice#:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id='invoiceNumber'/>
+			<br>
+			Actual Cost:&nbsp;&nbsp;<input id="cost"/>&nbsp;<button id='actualCostSubmit'>Submit</button>
 			<br>
 			Total Gross Weight = &nbsp;<span id='totalGrossWeight'></span>
 			<br>
@@ -44,6 +50,7 @@
 				<th>Actual Cost</th>
 				<th>Estimated Cost</th>
 				<th>Invoice Number</th>
+				<th>HAWB</th>
 				<th>Exception Notes</th>
 				<th>Shipment Notes</th>
 			</tr>
@@ -81,12 +88,27 @@ $(document).ready(function()
 /////////////////////////////////////////////////
 	$( '#searchButton' ).click(function()
 	{
-		$( '#actualCost' ).show();
 		table.fnClearTable();
 		fcTable.fnClearTable();
 		$( '#totalGrossWeight' ).text("");
 		tempGrossWeight = 0;
 		conProNumber = $( '#search' ).val();
+		houseAirWayBill = $( '#hawbInput' ).val();
+		if ( conProNumber != "" && houseAirWayBill == "" )
+		{
+			window.queryField = "Carrier_x0020_Pro_x0023_";
+			window.queryValue = conProNumber;
+		}
+		else if ( conProNumber == "" && houseAirWayBill != "" )
+		{
+			window.queryField = "HAWB";
+			window.queryValue = houseAirWayBill;
+		}
+		else
+		{
+			alert( "Please only Search for one Field" );
+			return;
+		}
 		$().SPServices(
 		{
 			operation: "GetListItems",
@@ -103,7 +125,7 @@ $(document).ready(function()
 								"<FieldRef Name='Delivery_x0020_Date'/>"+
 								"<FieldRef Name='_x0038_125_x0020_Url'/>"+
 								"</ViewFields>",
-			CAMLQuery: "<Query><Where><Eq><FieldRef Name='Carrier_x0020_Pro_x0023_'/><Value Type='Text'>" + conProNumber + "</Value></Eq></Where></Query>",
+			CAMLQuery: "<Query><Where><Eq><FieldRef Name='" + window.queryField + "'/><Value Type='Text'>" + window.queryValue + "</Value></Eq></Where></Query>",
 			completefunc: function (xData, Status) 
 			{
 				$(xData.responseXML).SPFilterNode("z:row").each(function()
@@ -199,8 +221,9 @@ $(document).ready(function()
 								"<FieldRef Name='Shipment_x0020_Notes'/>"+
 								"<FieldRef Name='Invoice_x0023_'/>"+
 								"<FieldRef Name='Carrier_x0020_Name'/>"+
+								"<FieldRef Name='HAWB'/>"+
 								"</ViewFields>",
-			CAMLQuery: "<Query><Where><Eq><FieldRef Name='Carrier_x0020_Pro_x0023_'/><Value Type='Text'>" + conProNumber + "</Value></Eq></Where></Query>",
+			CAMLQuery: "<Query><Where><Eq><FieldRef Name='" + window.queryField + "'/><Value Type='Text'>" + window.queryValue + "</Value></Eq></Where></Query>",
 			completefunc: function (xData, Status)
 			{
 				$(xData.responseXML).SPFilterNode("z:row").each(function()
@@ -213,6 +236,11 @@ $(document).ready(function()
 					shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
 					conProNumber = "<a target='_blank' href='http://nplweb.net/nplweb/Lists/Freight%20Costs/EditForm.aspx?ID=" + fcId + "'>" + conProNumber + "</a>";
 					carrierName = $(this).attr("ows_Carrier_x0020_Name");
+					houseBill = $(this).attr("ows_HAWB");
+					if (!houseBill)
+					{
+						houseBill = "";
+					}
 					if (!carrierName)
 					{
 						carrierName = "";
@@ -262,6 +290,7 @@ $(document).ready(function()
 						actualCostFC,
 						estimatedCost,
 						invoiceNumber,
+						houseBill,
 						exceptionNotes,
 						shipmentNotes
 					]);
@@ -275,13 +304,14 @@ $(document).ready(function()
 		conProNumber = $( '#search' ).val();
 		costToWrite = $( '#cost' ).val();
 		invoiceNumberTemp = $( '#invoiceNumber' ).val();
+		hawbValue = $( '#hawbInput' ).val();
 		$().SPServices(
 		{
 			operation: "GetListItems",
 			async: false,
 			listName: "Freight Costs",
 			CAMLViewFields: "<ViewFields><FieldRef Name='ID'/></ViewFields>",
-			CAMLQuery: "<Query><Where><Eq><FieldRef Name='Carrier_x0020_Pro_x0023_'/><Value Type='Text'>" + conProNumber + "</Value></Eq></Where></Query>",
+			CAMLQuery: "<Query><Where><Eq><FieldRef Name='" + window.queryField + "'/><Value Type='Text'>" + window.queryValue + "</Value></Eq></Where></Query>",
 			completefunc: function (xData, Status) 
 			{
 				$(xData.responseXML).SPFilterNode("z:row").each(function() 
