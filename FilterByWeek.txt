@@ -1,0 +1,185 @@
+<html>
+<head>
+</head>
+<body>
+	Begining Date:&nbsp;<input id='bDateInput'/>
+	End Date:&nbsp;<input id='eDateInput'/>&nbsp;<button id='searchButton'>Search</button>
+	<br>
+	<br>
+	<h3>Freight Cost Data</h3>
+	<table id='FCDataTable' style='text-align:center'>
+		<thead>
+			<tr>
+				<th>Carrier Pro</th>
+				<th>Carrier Name</th>
+				<th>Actual Cost</th>
+				<th>Estimated Cost</th>
+				<th>Invoice Number</th>
+				<th>HAWB</th>
+				<th>Exception Notes</th>
+				<th>Shipment Notes</th>
+			</tr>
+		</thead>
+	</table>
+</body>
+</html>
+
+<link rel="stylesheet" href="../Scripts/jqueryUI/DataTables-1.9.4/css/jquery.dataTables.css" type="text/css" media="all" />
+<link rel="stylesheet" href="../Scripts/jquery-ui-1.8rc3.custom/css/smoothness/jquery-ui-1.8rc3.custom.css" type="text/css" media="all" />   
+<script src="../Scripts/jquery-ui-1.8rc3.custom/js/jquery-1.4.2.min.js" type="text/javascript"></script>
+<script src="../Scripts/jquery-ui-1.8rc3.custom/js/jquery-ui-1.8rc3.custom.min.js" type="text/javascript"></script>
+<script src="../Scripts/jquery.SPServices-0.7.2.min.js" type="text/javascript"></script>
+<script src="../Scripts/jqueryUI/DataTables-1.9.4/js/jquery.dataTables.min.js" type="text/javascript"></script>
+<script src="../Scripts/jqueryUI/jQuery-Timepicker-Addon-1.0.2/jquery-ui-timepicker-addon.js"></script>
+
+<script type='text/javascript'>
+$(document).ready(function()
+{
+	var waitMessage = "<table width='100%' align='center'><tr><td align='center'><img src='/_layouts/images/gears_an.gif'/></td></tr></table>";
+	var fcTable = $( '#FCDataTable' ).dataTable(
+	{
+		"aaData":[
+		],
+		"bjQueryUI":true,
+		"sPaginationType":"full_numbers"
+	});
+	$( "#bDateInput" ).datepicker();
+	$( "#eDateInput" ).datepicker();
+	$( "#searchButton" ).click(function()
+	{
+		fcTable.fnClearTable();
+		beginningDate = $( '#bDateInput' ).val();
+		endDate = $( '#eDateInput' ).val();
+		function convertDate (date)
+		{
+			month = date.split('/')[0];
+			day = date.split('/')[1];
+			year = date.split('/')[2];
+			year = year.slice(2,4);
+			if ( month.slice(0,1) == "0" );
+			{
+				month = month.replace('0','')
+			}
+			newDate = month + day + year;
+			return newDate;
+		}
+		beginningDate = convertDate(beginningDate);
+		endDate = convertDate(endDate);
+		yearSearch = endDate.slice(-2);
+		if ( beginningDate > endDate )
+		{
+			alert( "Beginning Date is Greater than End Date." );
+			return;
+		}
+		$().SPServices(
+		{
+			operation: "GetListItems",
+			async: false,
+			listName: "Freight Costs",
+			CAMLViewFields: "<ViewFields>"+
+								"<FieldRef Name='Actual_x0020_Cost'/>"+
+								"<FieldRef Name='ID'/>"+
+								"<FieldRef Name='Estimated_x0020_Cost'/>"+
+								"<FieldRef Name='Exception_x0020_Notes'/>"+
+								"<FieldRef Name='Shipment_x0020_Notes'/>"+
+								"<FieldRef Name='Invoice_x0023_'/>"+
+								"<FieldRef Name='Carrier_x0020_Name'/>"+
+								"<FieldRef Name='HAWB'/>"+
+								"<FieldRef Name='Carrier_x0020_Pro_x0023_'/>"+
+							"</ViewFields>",
+			CAMLQuery: "<Query><Where><And><And>"+
+							"<Geq>"+
+								"<FieldRef Name='loadDateStringToNum'/>"+
+								"<Value Type='Number'>" + beginningDate + "</Value>"+
+							"</Geq>"+
+							"<Leq>"+
+								"<FieldRef Name='loadDateStringToNum'/>"+
+								"<Value Type='Number'>" + endDate + "</Value>"+
+							"</Leq>"+
+						"</And>"+
+							"<Eq>"+
+								"<FieldRef Name='LoadYearCalc'/>"+
+								"<Value Type='Text'>" + yearSearch + "</Value>"+
+							"</Eq>"+
+						"</And>"+
+						"</Where></Query>",
+			completefunc: function (xData, Status)
+			{
+				$(xData.responseXML).SPFilterNode("z:row").each(function()
+				{
+					fcId = $(this).attr("ows_ID");
+					actualCostFC = $(this).attr("ows_Actual_x0020_Cost");
+					estimatedCost = $(this).attr("ows_Estimated_x0020_Cost");
+					invoiceNumber = $(this).attr("ows_Invoice_x0023_");
+					exceptionNotes = $(this).attr("ows_Exception_x0020_Notes");
+					shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
+					carrierName = $(this).attr("ows_Carrier_x0020_Name");
+					houseBill = $(this).attr("ows_HAWB");
+					conProNumber = $(this).attr("ows_Carrier_x0020_Pro_x0023_");
+					if (!conProNumber)
+					{
+						conProNumber = "";
+					}
+					if (!houseBill)
+					{
+						houseBill = "";
+					}
+					if (!carrierName)
+					{
+						carrierName = "";
+					}
+					if (!invoiceNumber)
+					{
+						invoiceNumber = "";
+					}
+					if (!actualCostFC)
+					{
+						actualCostFC = "";
+					}
+					else
+					{
+						try
+						{
+							dollars = actualCostFC.split(".")[0];
+							cents = actualCostFC.split(".")[1];
+							cents = cents.slice(0,2);
+							actualCostFC = dollars + "." + cents;
+						}
+						catch(err)
+						{
+							actualCostFC = actualCostFC
+						}
+					}
+					if (!estimatedCost)
+					{
+						estimatedCost = "";
+					}
+					else
+					{
+						estimatedCost = estimatedCost.split(".")[0];
+					}
+					if (!exceptionNotes)
+					{
+						exceptionNotes = "";
+					}
+					if (!shipmentNotes)
+					{
+						shipmentNotes = "";
+					}
+					$( '#FCDataTable' ).dataTable().fnAddData(
+					[
+						conProNumber,
+						carrierName,
+						actualCostFC,
+						estimatedCost,
+						invoiceNumber,
+						houseBill,
+						exceptionNotes,
+						shipmentNotes
+					]);
+				});
+			}
+		});
+	});
+});
+</script>
