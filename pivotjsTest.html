@@ -1,0 +1,107 @@
+<html>
+<head>
+</head>
+<body>
+	Begining Date:&nbsp;<input id='bDateInput'/>
+	End Date:&nbsp;<input id='eDateInput'/>&nbsp;
+	<button id='searchButtonWF'>Search</button>
+	<div id='waiting'><h1 align='center'>Loading...</h1></div>
+	<table align="right">
+		<tbody>
+			<tr>
+				<td><h2>Totals</h2><br>
+					<ul style="list-style:none; padding:0; margin:0">
+						<li id="actualCostList"></li>
+						<li id="estCostList"></li>
+					</ul>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+					
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
+	<h2>Freight Cost Data</h2>	
+	<table id='weekFilterDT' style='text-align:center'>
+		<thead>
+			<tr>
+				<th>Carrier Pro</th>
+				<th>Carrier Name</th>
+				<th>Actual Cost</th>
+				<th>Estimated Cost</th>
+				<th>Load Date</th>
+				<th>Invoice Number</th>
+				<th>HAWB</th>
+				<th>Exception Notes</th>
+				<th>Shipment Notes</th>
+			</tr>
+		</thead>
+	</table>
+</body>
+
+<link rel="stylesheet" href="../Scripts/jquery-ui-1.8rc3.custom/css/smoothness/jquery-ui-1.8rc3.custom.css" type="text/css" media="all" />  
+<script src="../Scripts/jquery-ui-1.8rc3.custom/js/jquery-1.4.2.min.js" type="text/javascript"></script>
+<script src="../Scripts/jquery.SPServices-0.7.2.min.js" type="text/javascript"></script>
+<script src="../Scripts/jqueryUI/pivot.js" type="text/javascript"></script>
+
+<script>
+$(document).ready(function()
+{
+	
+		$().SPServices(
+			{
+				operation: "GetListItems",
+				async: false,
+				listName: "Freight Costs",
+				CAMLViewFields: "<ViewFields>"+
+									"<FieldRef Name='Actual_x0020_Cost'/>"+
+									"<FieldRef Name='ID'/>"+
+									"<FieldRef Name='Estimated_x0020_Cost'/>"+
+									"<FieldRef Name='Exception_x0020_Notes'/>"+
+									"<FieldRef Name='Shipment_x0020_Notes'/>"+
+									"<FieldRef Name='Invoice_x0023_'/>"+
+									"<FieldRef Name='Carrier_x0020_Name'/>"+
+									"<FieldRef Name='HAWB'/>"+
+									"<FieldRef Name='Carrier_x0020_Pro_x0023_'/>"+
+									"<FieldRef Name='LoadDateCalc'/>"+
+								"</ViewFields>",
+				CAMLQuery: "<Query><Where><And><And><And>"+
+								"<Geq>"+
+									"<FieldRef Name='loadDateStringToNum'/>"+
+									"<Value Type='Number'>10114</Value>"+
+								"</Geq>"+
+								"<Leq>"+
+									"<FieldRef Name='loadDateStringToNum'/>"+
+									"<Value Type='Number'>13014</Value>"+
+								"</Leq>"+
+							"</And>"+
+								"<Eq>"+
+									"<FieldRef Name='LoadYearCalc'/>"+
+									"<Value Type='Text'>14</Value>"+
+								"</Eq>"+
+								"</And>"+
+								"<IsNotNull>"+
+									"<FieldRef Name='Carrier_x0020_Pro_x0023_'/>"+
+								"</IsNotNull>"+
+							"</And>"+
+							"</Where></Query>",
+				completefunc: function (xData, Status)
+				{
+					jData = $(xData.responseXML).SPFilterNode("z:row").SPXmlToJson(
+					{
+						mapping: {},
+						includeAllAttrs: false,
+						removeOws: true
+					});
+					var field_definitions = [{name: 'Carrier_x0020_Pro_x0023_', type: 'string', filterable: true},
+							{name: 'Actual_x0020_Cost',		type: 'string',		filterable: true}];
+					pivot.init({json: jData, fields: field_definitions});
+				}
+			});
+		
+});
+</script>

@@ -12,12 +12,17 @@
 				<td><h2>Totals</h2><br>
 					<ul style="list-style:none; padding:0; margin:0">
 						<li id="actualCostList"></li>
+						<li id="estCostList"></li>
 					</ul>
 				</td>
 			</tr>
 		</tbody>
 	</table>
 					
+	<br>
+	<br>
+	<br>
+	<br>
 	<br>
 	<br>
 	<h2>Freight Cost Data</h2>	
@@ -137,6 +142,7 @@ $(document).ready(function()
 			completefunc: function (xData, Status)
 			{
 				window.aCostSum = 0;
+				window.eCostSum = 0;
 				$(xData.responseXML).SPFilterNode("z:row").each(function()
 				{
 					fcId = $(this).attr("ows_ID");
@@ -196,6 +202,7 @@ $(document).ready(function()
 					else
 					{
 						estimatedCost = estimatedCost.split(".")[0];
+						window.eCostSum = window.eCostSum + parseInt( estimatedCost );
 					}
 					if (!exceptionNotes)
 					{
@@ -220,6 +227,7 @@ $(document).ready(function()
 					]);
 				});
 				$( '#actualCostList' ).html("<h3>Actual Cost: $" + window.aCostSum + "</h3>");
+				$( '#estCostList' ).html("<h3>Estimated Cost: $" + window.eCostSum + "</h3>");
 			}
 		});
 		},50);

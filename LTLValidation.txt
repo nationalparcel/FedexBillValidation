@@ -8,6 +8,17 @@
 	Consolidator Pro:&nbsp;<input id='search'/>
 	<br>
 	HAWB&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id='hawbInput'/>&nbsp;<button id='searchButton'>Search</button>
+	<table align="right">
+		<tbody>
+			<tr>
+				<td><h2>Totals</h2><br>
+					<ul style="list-style:none; padding:0; margin:0">
+						<li id="totalGrossWeight"></li>
+					</ul>
+				</td>
+			</tr>
+		</tbody>
+	</table>
 	<br>
 	<br>
 	<div id='actualCost'>
@@ -207,7 +218,7 @@ $(document).ready(function()
 					grossWeight = parseInt(grossWeight);
 					tempGrossWeight = tempGrossWeight + grossWeight;
 				});
-				$( '#totalGrossWeight' ).text(tempGrossWeight);
+				$( '#totalGrossWeight' ).html( "<h3>Gross Weight: " + tempGrossWeight + "</h3>" );
 			}
 		});
 		$().SPServices(

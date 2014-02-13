@@ -1,0 +1,64 @@
+<html>
+<head>
+</head>
+<body>
+</body>
+</html>
+
+
+<script src="//nplweb.net/nplweb/Scripts/jquery-ui-1.8rc3.custom/js/jquery-1.4.2.min.js" type="text/javascript"></script>
+<script src="//nplweb.net/nplweb/Scripts/jquery.SPServices-0.7.2.min.js" type="text/javascript"></script>
+
+<script>
+$(document).ready(function()
+{
+	$("input[title='Carrier Pro#']").focusout(function()
+	{
+		carrierProNumber = $( "input[title='Carrier Pro#']").val();
+		$().SPServices(
+		{
+			operation: "GetListItems",
+			async: false,
+			listName: "Shipments Archive",
+			CAMLViewFields: "<ViewFields><FieldRef Name='ID'/>"+
+								"<FieldRef Name='Carrier_x0020_Name'/>"+
+								"<FieldRef Name='Truck_x0020_Manifest_x0020_ID'/>"+
+								"<FieldRef Name='Manifest_x0020_Origin'/>"+
+								"<FieldRef Name='Customer_x0020_Choice'/>"+
+								"</ViewFields>",
+			CAMLQuery: "<Query><Where><Eq><FieldRef Name='Carrier_x0020_Pro_x0023_'/><Value Type='Text'>" + carrierProNumber + "</Value></Eq></Where></Query>",
+			completefunc: function (xData, Status) 
+			{
+				$(xData.responseXML).SPFilterNode("z:row").each(function()
+				{
+					carrierName = $(this).attr("ows_Carrier_x0020_Name");
+					loadNumber = $(this).attr("ows_Truck_x0020_Manifest_x0020_ID");
+					manifestOrigin = $(this).attr("ows_Manifest_x0020_Origin");
+					customerChoice = $(this).attr("ows_Customer_x0020_Choice");
+					if(!customerChoice)
+					{
+						customerChoice = "";
+					}
+					if(!manifestOrigin)
+					{
+						manifestOrigin = "";
+					}
+					if(!loadNumber)
+					{
+						loadNumber = "";
+					}
+					if (!carrierName)
+					{
+						carrierName = "";
+					}
+					$( "input[title='Carrier Name']" ).val( carrierName );
+					$( "input[title='Load#']" ).val( loadNumber );
+					$( "input[title='Manifest Origin']").val( manifestOrigin );
+					$( "select[title='Customer Choice']").val( customerChoice );
+					return;
+				});
+			}
+		});
+	});
+});
+</script>
