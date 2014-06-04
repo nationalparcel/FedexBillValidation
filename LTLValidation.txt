@@ -40,6 +40,7 @@
 			<tr>
 				<th>Carrier Pro</th>
 				<th>NPL Pro Number</th>
+				<th>Load #</th>
 				<th>Gross Weight</th>
 				<th>Customer</th>
 				<th>Delivery Date</th>
@@ -57,6 +58,7 @@
 		<thead>
 			<tr>
 				<th>Carrier Pro</th>
+				<th>Load #</th>
 				<th>Carrier Name</th>
 				<th>Actual Cost</th>
 				<th>Estimated Cost</th>
@@ -136,6 +138,7 @@ $(document).ready(function()
 								"<FieldRef Name='Shipment_x0020_Notes'/>"+
 								"<FieldRef Name='Delivery_x0020_Date'/>"+
 								"<FieldRef Name='_x0038_125_x0020_Url'/>"+
+								"<FieldRef Name='Truck_x0020_Manifest_x0020_ID'/>"+
 								"</ViewFields>",
 			CAMLQuery: "<Query><Where><Eq><FieldRef Name='" + window.queryField + "'/><Value Type='Text'>" + window.queryValue + "</Value></Eq></Where></Query>",
 			completefunc: function (xData, Status) 
@@ -151,6 +154,11 @@ $(document).ready(function()
 					shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
 					deliveryDate = $(this).attr("ows_Delivery_x0020_Date");
 					pdfLink = $(this).attr("ows__x0038_125_x0020_Url");
+					loadNumber = $(this).attr("ows_Truck_x0020_Manifest_x0020_ID");
+					if (!loadNumber)
+					{
+						loadNumber = "";
+					}
 					if (!pdfLink)
 					{
 						pdfLink = "";
@@ -207,6 +215,7 @@ $(document).ready(function()
 					[
 						carrierPro,
 						nplPro,
+						loadNumber,
 						grossWeight,
 						customer,
 						deliveryDate,
@@ -234,6 +243,7 @@ $(document).ready(function()
 								"<FieldRef Name='Invoice_x0023_'/>"+
 								"<FieldRef Name='Carrier_x0020_Name'/>"+
 								"<FieldRef Name='HAWB'/>"+
+								"<FieldRef Name='Truck_x0020_Manifest_x0020_ID'/>"+
 								"</ViewFields>",
 			CAMLQuery: "<Query><Where><Eq><FieldRef Name='" + window.queryField + "'/><Value Type='Text'>" + window.queryValue + "</Value></Eq></Where></Query>",
 			completefunc: function (xData, Status)
@@ -249,6 +259,11 @@ $(document).ready(function()
 					conProNumber = "<a target='_blank' href='http://nplweb.net/nplweb/Lists/Freight%20Costs/EditForm.aspx?ID=" + fcId + "'>" + conProNumber + "</a>";
 					carrierName = $(this).attr("ows_Carrier_x0020_Name");
 					houseBill = $(this).attr("ows_HAWB");
+					loadNumber = $(this).attr("ows_Truck_x0020_Manifest_x0020_ID");
+					if (!loadNumber)
+					{
+						loadNumber = "";
+					}
 					if (!houseBill)
 					{
 						houseBill = "";
@@ -298,6 +313,7 @@ $(document).ready(function()
 					$( '#FCDataTable' ).dataTable().fnAddData(
 					[
 						conProNumber,
+						loadNumber,
 						carrierName,
 						actualCostFC,
 						estimatedCost,
