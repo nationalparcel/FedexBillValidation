@@ -3,11 +3,23 @@
 </head>
 <body>
 	<a href='http://nplweb.net/nplweb/Lists/Freight Costs/NewForm.aspx?RootFolder=%2Fnplweb%2FLists%2FFreight%20Costs&ContentTypeId=0x0100F21621715E0C9D44AACD1F00E5D818B0010081EF93BF335E2142A2FFAB8056796903&Source=http%3A%2F%2Fnplweb%2Enet%2Fnplweb%2FWebPart%2FLTL%2520Invoice%2520Validation%2Easpx' target="_blank">New Cost</a>
+    &nbsp;&nbsp;
+    <a href="#" id="openMBGDialog">MBG</a>
 	<br>
 	<br>
-	Consolidator Pro:&nbsp;<input id='search'/>
-	<br>
-	HAWB&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id='hawbInput'/>&nbsp;<button id='searchButton'>Search</button>
+    <table>
+        <tr>
+            Carrier Pro:&nbsp;
+        </tr>
+        <tr>
+            <input id='search' />
+        </tr>
+        <br>
+        HAWB:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input id='hawbInput' />&nbsp;
+        <br />
+        <button id='searchButton'>Search</button>
+    </table>
 	<table align="right">
 		<tbody>
 			<tr>
@@ -28,13 +40,11 @@
 			<br>
 			Actual Cost:&nbsp;&nbsp;<input id="cost"/>&nbsp;<button id='actualCostSubmit'>Submit</button>
 			<br>
-			Total Gross Weight = &nbsp;<span id='totalGrossWeight'></span>
-			<br>
 			<br>
 		<br>
 		<br>
 	</div>
-	<h3>Shipments Data</h3>
+	<h3>Shipments Archive Data</h3>
 	<table id='dataTable' style='text-align:center'>
 		<thead>
 			<tr>
@@ -66,22 +76,50 @@
 				<th>HAWB</th>
 				<th>Exception Notes</th>
 				<th>Shipment Notes</th>
+                <th>MBG</th>
 			</tr>
 		</thead>
 	</table>
+
+    <div id="MBGFlag">
+        <table>
+            <tr>
+                <td>
+                    Carrier Pro:
+                </td>
+                <td>
+                    <input id="MBGcarrierPro" />&nbsp;&nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    MBG:
+                </td>
+                <td>
+                    <select id="MBGselect">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
 </body>
 </html>
 
-<link rel="stylesheet" href="../Scripts/jqueryUI/DataTables-1.9.4/css/jquery.dataTables.css" type="text/css" media="all" />  
+<link rel="stylesheet" href="../Scripts/jqueryUI/DataTables-1.9.4/css/jquery.dataTables.css" type="text/css" media="all" />
+<link rel="stylesheet" href="../Scripts/jquery-ui-1.8rc3.custom/css/smoothness/jquery-ui-1.8rc3.custom.css" type="text/css" media="all" />   
 <script src="../Scripts/jquery-ui-1.8rc3.custom/js/jquery-1.4.2.min.js" type="text/javascript"></script>
 <script src="../Scripts/knockout-2.2.1.js" type ="text/javascript"></script>
 <script src="../Scripts/jquery.SPServices-0.7.2.min.js" type="text/javascript"></script>
 <script src="../Scripts/KOJSMapping.js" type="text/javascript"></script>
+<script src="../Scripts/jquery-ui-1.8rc3.custom/js/jquery-ui-1.8rc3.custom.min.js" type="text/javascript"></script>
 <script src="../Scripts/jqueryUI/DataTables-1.9.4/js/jquery.dataTables.min.js" type="text/javascript"></script>
 
 <script>
 $(document).ready(function()
 {
+    var allowWrite = true;
 	$( '#actualCost' ).hide();
 	var fcTable = $( '#FCDataTable' ).dataTable(
 	{
@@ -101,7 +139,8 @@ $(document).ready(function()
 /////////////////////////////////////////////////
 	$( '#searchButton' ).click(function()
 	{
-		$( '#actualCost' ).show();
+	    allowWrite = true;
+	    $( '#actualCost' ).show();
 		table.fnClearTable();
 		fcTable.fnClearTable();
 		$( '#totalGrossWeight' ).text("");
@@ -145,16 +184,16 @@ $(document).ready(function()
 			{
 				$(xData.responseXML).SPFilterNode("z:row").each(function()
 				{
-					carrierPro = $(this).attr("ows_Carrier_x0020_Pro_x0023_");
-					nplPro = $(this).attr("ows_Pro_x0020_Number");
-					grossWeight = $(this).attr("ows_Gross_x0020_Weight");
-					customer = $(this).attr("ows_Customer_x0020_Name");
-					postDestination = $(this).attr("ows_Drop_x0020_Site_x0020_Name");
-					exceptionNotes = $(this).attr("ows_Exception_x0020_Notes");
-					shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
-					deliveryDate = $(this).attr("ows_Delivery_x0020_Date");
-					pdfLink = $(this).attr("ows__x0038_125_x0020_Url");
-					loadNumber = $(this).attr("ows_Truck_x0020_Manifest_x0020_ID");
+				    var carrierPro = $(this).attr("ows_Carrier_x0020_Pro_x0023_");
+				    var nplPro = $(this).attr("ows_Pro_x0020_Number");
+				    var grossWeight = $(this).attr("ows_Gross_x0020_Weight");
+				    var customer = $(this).attr("ows_Customer_x0020_Name");
+				    var postDestination = $(this).attr("ows_Drop_x0020_Site_x0020_Name");
+				    var exceptionNotes = $(this).attr("ows_Exception_x0020_Notes");
+				    var shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
+				    var deliveryDate = $(this).attr("ows_Delivery_x0020_Date");
+				    var pdfLink = $(this).attr("ows__x0038_125_x0020_Url");
+				    var loadNumber = $(this).attr("ows_Truck_x0020_Manifest_x0020_ID");
 					if (!loadNumber)
 					{
 						loadNumber = "";
@@ -244,22 +283,36 @@ $(document).ready(function()
 								"<FieldRef Name='Carrier_x0020_Name'/>"+
 								"<FieldRef Name='HAWB'/>"+
 								"<FieldRef Name='Truck_x0020_Manifest_x0020_ID'/>"+
+                                "<FieldRef Name='MBG'/>"+
 								"</ViewFields>",
 			CAMLQuery: "<Query><Where><Eq><FieldRef Name='" + window.queryField + "'/><Value Type='Text'>" + window.queryValue + "</Value></Eq></Where></Query>",
 			completefunc: function (xData, Status)
 			{
-				$(xData.responseXML).SPFilterNode("z:row").each(function()
+			    $(xData.responseXML).SPFilterNode("z:row").each(function()
 				{
-					fcId = $(this).attr("ows_ID");
-					actualCostFC = $(this).attr("ows_Actual_x0020_Cost");
-					estimatedCost = $(this).attr("ows_Estimated_x0020_Cost");
-					invoiceNumber = $(this).attr("ows_Invoice_x0023_");
-					exceptionNotes = $(this).attr("ows_Exception_x0020_Notes");
-					shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
-					conProNumber = "<a target='_blank' href='http://nplweb.net/nplweb/Lists/Freight%20Costs/EditForm.aspx?ID=" + fcId + "'>" + conProNumber + "</a>";
-					carrierName = $(this).attr("ows_Carrier_x0020_Name");
-					houseBill = $(this).attr("ows_HAWB");
-					loadNumber = $(this).attr("ows_Truck_x0020_Manifest_x0020_ID");
+				    var fcId = $(this).attr("ows_ID");
+				    var actualCostFC = $(this).attr("ows_Actual_x0020_Cost");
+				    var estimatedCost = $(this).attr("ows_Estimated_x0020_Cost");
+				    var invoiceNumber = $(this).attr("ows_Invoice_x0023_");
+				    var exceptionNotes = $(this).attr("ows_Exception_x0020_Notes");
+				    var shipmentNotes = $(this).attr("ows_Shipment_x0020_Notes");
+				    conProNumber = "<a target='_blank' href='http://nplweb.net/nplweb/Lists/Freight%20Costs/EditForm.aspx?ID=" + fcId + "'>" + conProNumber + "</a>";
+				    var carrierName = $(this).attr("ows_Carrier_x0020_Name");
+				    var houseBill = $(this).attr("ows_HAWB");
+				    var loadNumber = $(this).attr("ows_Truck_x0020_Manifest_x0020_ID");
+				    var MBG = $(this).attr("ows_MBG");
+				    if (MBG == "1") {
+				        MBG = "Yes";
+				    }
+				    else {
+				        MBG = "No";
+				    }
+				    if (MBG == "Yes") {
+					    allowWrite = false;
+					}
+					if (!MBG) {
+					    MBG = "";
+					}
 					if (!loadNumber)
 					{
 						loadNumber = "";
@@ -320,7 +373,8 @@ $(document).ready(function()
 						invoiceNumber,
 						houseBill,
 						exceptionNotes,
-						shipmentNotes
+						shipmentNotes,
+                        MBG
 					]);
 				});
 			}
@@ -344,20 +398,85 @@ $(document).ready(function()
 			{
 				$(xData.responseXML).SPFilterNode("z:row").each(function() 
 				{
-					$().SPServices(
-					{
-						operation: "UpdateListItems",
-						async: false,
-						batchCmd: "Update",
-						listName: "Freight Costs",
-						ID: $(this).attr("ows_ID"),
-						valuepairs: [["Actual_x0020_Cost",costToWrite],["Invoice_x0023_",invoiceNumberTemp]],
-						completefunc: function(xData,Status) {}
-					});
+				    if (allowWrite == true){
+				        $().SPServices(
+                        {
+                            operation: "UpdateListItems",
+                            async: false,
+                            batchCmd: "Update",
+                            listName: "Freight Costs",
+                            ID: $(this).attr("ows_ID"),
+                            valuepairs: [["Actual_x0020_Cost",costToWrite],["Invoice_x0023_",invoiceNumberTemp]],
+                            completefunc: function(xData,Status) {}
+                        });
+				    }
+				    else{
+				        alert("This shipment has been flaged as Money back garenteed.  Edits are not allowed.");
+				    }
 				});
 			}
 		});
 		$( '#searchButton' ).trigger('click');
 	});
+
+    //MBG Carrier Pro Dialog
+	var MBGselect = $("#MBGselect");
+	var openMBGDialog = $("#openMBGDialog");
+	var MBGInput = $("#MBGcarrierPro");
+	var MBGDialog = $("#MBGFlag");
+    $("#MBGFlag").dialog({
+	    resizable: false,
+	    modal: true,
+	    autoOpen: false,
+        width: 350,
+	    buttons: {
+	        "Save": function(){
+	            $().SPServices({
+	                operation: "GetListItems",
+	                async: false,
+	                listName: "Freight Costs",
+	                CAMLViewFields: "<ViewFields><FieldRef Name='ID'/><FieldRef Name='Actual_x0020_Cost'/><FieldRef Name='Estimated_x0020_Cost'/></ViewFields>",
+	                CAMLQuery: "<Query><Where><Eq><FieldRef Name='Carrier_x0020_Pro_x0023_'/><Value Type='Text'>" + MBGInput.val() + "</Value></Eq></Where></Query>",
+	                completefunc: function (xData, Status) {
+	                    $(xData.responseXML).SPFilterNode("z:row").each(function () {
+	                        if (MBGselect.val() == "Yes") {
+	                            var actCost = "0";
+	                            var estCost = "0";
+	                            var MBGField = "1";
+	                        }
+	                        else {
+	                            var actCost = $(this).attr("ows_Actual_x0020_Cost");
+	                            var estCost = $(this).attr("ows_Estimated_x0020_Cost");
+	                            var MBGField = "0";
+	                        }
+	                        $().SPServices({
+	                            operation: "UpdateListItems",
+	                            async: false,
+	                            batchCmd: "Update",
+	                            listName: "Freight Costs",
+	                            ID: $(this).attr("ows_ID"),
+	                            valuepairs: [["MBG", MBGField], ["Actual_x0020_Cost", actCost], ["Estimated_x0020_Cost", estCost]],
+	                            completefunc: function (xData, Status) {
+	                                if (Status = "success") {
+	                                    alert("MBG Set To " + MBGselect.val());
+	                                }
+	                                else {
+	                                    alert("MBG Change Failed");
+	                                }
+	                                MBGDialog.dialog("close");
+	                            }
+	                        });
+	                    });
+	                }
+	            })
+	        },
+	        "Cancel": function () {
+	            MBGDialog.dialog("close");
+	        }
+	    }
+    })
+	openMBGDialog.click(function () {
+	    MBGDialog.dialog("open");
+	})
 });
 </script>
